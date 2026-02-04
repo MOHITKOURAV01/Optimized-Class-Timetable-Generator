@@ -1,12 +1,12 @@
 # Optimized-Class-Timetable-Generator
 Intelligent Scheduling for Smarter Campuses
 
-## 🚀 Live Demo
+## Live Demo
  [https://optimized-timetable-frontend.vercel.app](https://optimized-timetable-frontend.vercel.app)  
 
 
 
-# 🧩 The Problem Statement
+# The Problem Statement
 Most colleges still rely on manual or spreadsheet-based timetable creation, leading to:
 Class clashes and faculty overload
 
@@ -22,7 +22,7 @@ Frustrated students and faculty
 
 With NEP 2020 promoting flexible and multidisciplinary learning, scheduling complexity has exploded — existing tools can’t keep up.
 
-# 💡 The Idea
+# The Idea
 An AI-powered, web-based platform that automatically generates optimized timetables for colleges by balancing:
 Room utilization
 
@@ -38,7 +38,7 @@ Fixed and elective slots
 
 All while ensuring zero clashes and maximum efficiency.
 
-# ⚙️ How It Works
+# How It Works
 Admins / HODs input:
 
 
@@ -58,14 +58,14 @@ Exports available in PDF, CSV, or iCal for easy sharing
 
 
 
-# 🧠 Tech Stack
+# Tech Stack
 Frontend: React (TypeScript)
  Backend: Node.js (Express)
  Database: MySQL with Prisma ORM
  Optimizer Engine: Python microservice using Google OR-Tools (CP-SAT)
  Hosting: Dockerized on AWS / Render
 
-# 🌟 Key Features
+# Key Features
 🧑‍🏫 Faculty load & availability management
 
 
@@ -85,7 +85,7 @@ Frontend: React (TypeScript)
 
 
 
-# 🚀 Impact
+# Impact
 Saves 80% time vs manual scheduling
 
 
@@ -102,7 +102,7 @@ Scalable for any university structure or NEP 2020-based curriculum
 
 
 
-# 🔮 Future Scope
+# Future Scope
 Student elective integration
 
 
@@ -116,7 +116,7 @@ Integration with LMS platforms
 
 
 
-# 🧭 Vision
+# Vision
 To make academic scheduling smart, conflict-free, and adaptive —
  helping institutions focus less on logistics and more on learning outcomes.
 
