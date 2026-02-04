@@ -7,6 +7,7 @@ import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { Loader2, Plus } from 'lucide-react';
+import { useNotificationStore } from '../store/notification.store';
 
 const DepartmentPage = () => {
     const navigate = useNavigate();
@@ -16,6 +17,7 @@ const DepartmentPage = () => {
     const [submitting, setSubmitting] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({ name: '', code: '', hod: '' });
+    const { addNotification, showConfirm } = useNotificationStore();
 
     useEffect(() => {
         fetchDepartments();
@@ -58,15 +60,20 @@ const DepartmentPage = () => {
     };
 
     const handleDelete = async (dept) => {
-        if (window.confirm(`Are you sure you want to delete ${dept.name}?`)) {
-            try {
-                await departmentApi.delete(dept.id);
-                fetchDepartments();
-            } catch (error) {
-                console.error("Failed to delete department", error);
-                alert("Failed to delete department");
+        showConfirm({
+            title: `Delete Department?`,
+            message: `Are you sure you want to delete ${dept.name}? All linked faculties and subjects might be affected.`,
+            type: "danger",
+            onConfirm: async () => {
+                try {
+                    await departmentApi.delete(dept.id);
+                    addNotification("Department deleted successfully", "success");
+                    fetchDepartments();
+                } catch (error) {
+                    addNotification("Failed to delete department", "error");
+                }
             }
-        }
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -91,7 +98,7 @@ const DepartmentPage = () => {
             fetchDepartments();
         } catch (error) {
             console.error("Failed to save department", error);
-            alert("Failed to save department");
+            addNotification("Failed to save department", "error");
         } finally {
             setSubmitting(false);
         }

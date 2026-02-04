@@ -19,11 +19,15 @@ import EditSubject from './pages/EditSubject';
 import TimetableGeneratePage from './pages/TimetableGeneratePage';
 import ApprovalPage from './pages/ApprovalPage';
 import TimetableDetailPage from './pages/TimetableDetailPage';
+import { ToastContainer } from './components/ui/Toast';
+import ConfirmDialog from './components/ui/ConfirmDialog';
 
 function App() {
     return (
         <AuthProvider>
             <Router>
+                <ToastContainer />
+                <ConfirmDialog />
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignupPage />} />

@@ -5,10 +5,12 @@ import { departmentApi } from '../api/department.api';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { Loader2, ArrowLeft, Info, BookOpen, Clock, Building2 } from 'lucide-react';
+import { useNotificationStore } from '../store/notification.store';
 
 const AddSubject = () => {
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
+    const { addNotification } = useNotificationStore();
     const [departments, setDepartments] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
@@ -58,11 +60,12 @@ const AddSubject = () => {
             };
 
             await subjectApi.create(payload);
+            addNotification("Subject created successfully!", "success");
             navigate('/dashboard/subjects');
         } catch (error) {
             console.error("Failed to save subject", error);
             const message = error.response?.data?.message || error.message || "Failed to save subject";
-            alert(`Error: ${message}`);
+            addNotification(`Error: ${message}`, "error");
         } finally {
             setSubmitting(false);
         }

@@ -7,10 +7,34 @@ const generateTimetable = async (req, res, next) => {
         const { departmentId, semester, name } = req.body;
         const generatedById = req.user.id; // From authJwt
 
-        // 1. Get Data
-        const data = await timetableService.getGenerationData(departmentId, semester);
+        const dId = parseInt(departmentId);
+        const sem = parseInt(semester);
 
-        // 2. Build Prompt & Call AI
+        if (isNaN(dId) || isNaN(sem)) {
+            return res.status(400).json({ error: "Invalid departmentId or semester" });
+        }
+
+        // 1. Get Data
+        const data = await timetableService.getGenerationData(dId, sem);
+
+        // 2. Pre-Generation Requirements Check
+        if (!data.subjects || data.subjects.length === 0) {
+            return res.status(400).json({
+                error: `No subjects found for Semester ${sem} in this department. Please add subjects first.`
+            });
+        }
+        if (!data.faculty || data.faculty.length === 0) {
+            return res.status(400).json({
+                error: "No faculty found for this department. Please assign faculty members first."
+            });
+        }
+        if (!data.classrooms || data.classrooms.length === 0) {
+            return res.status(400).json({
+                error: "No classrooms found for this department. Please add classrooms first."
+            });
+        }
+
+        // 3. Build Prompt & Call AI
         const messages = aiSchedulerService.buildPrompt(data);
         const generatedSlots = await aiSchedulerService.callAiModel(messages);
 
@@ -75,7 +99,7 @@ const generateTimetable = async (req, res, next) => {
 
             // Distribute subjects
             data.subjects.forEach(subject => {
-                const totalNeeded = (subject.lectures || 0) + (subject.labs || 0);
+                const totalNeeded = (subject.lecturesPerWeek || 0) + (subject.labsPerWeek || 0);
                 let assigned = 0;
 
                 // Try days
@@ -97,12 +121,17 @@ const generateTimetable = async (req, res, next) => {
                             const key = `${day}-${time.start}-${freeRoom.id}`;
                             usedSlots.add(key);
 
+                            // Determine slot type based on assigned count
+                            const currentSlotType = assigned < (subject.lecturesPerWeek || 0) ? 'LECTURE' : 'LAB';
+
                             fallbackSlots.push({
                                 dayOfWeek: day,
                                 startTime: time.start,
                                 endTime: time.end,
                                 subjectId: subject.id,
-                                facultyId: subject.facultyId || (data.faculty[0] ? data.faculty[0].id : null),
+                                slotType: currentSlotType,
+                                // Corrected faculty assignment
+                                facultyId: data.faculty[0] ? data.faculty[0].id : null,
                                 classroomId: freeRoom.id
                             });
                             assigned++;

@@ -7,6 +7,7 @@ import Modal from '../components/ui/Modal';
 import { CheckCircle, XCircle, Eye } from 'lucide-react';
 
 import TimetableGrid from '../components/TimetableGrid';
+import { useNotificationStore } from '../store/notification.store';
 
 const ApprovalPage = () => {
     const [timetables, setTimetables] = useState([]);
@@ -14,6 +15,7 @@ const ApprovalPage = () => {
     const [selectedTimetable, setSelectedTimetable] = useState(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [fetchingDetail, setFetchingDetail] = useState(false);
+    const { addNotification, showConfirm } = useNotificationStore();
 
     useEffect(() => {
         fetchPendingTimetables();
@@ -23,7 +25,10 @@ const ApprovalPage = () => {
         try {
             setLoading(true);
             const data = await timetableApi.getAll();
+            console.log("Approvals Page - All Data:", data);
+            window.lastFetchedTimetables = data;
             const pending = data.filter(t => t.status === 'PENDING' || t.status === 'DRAFT');
+            console.log("Approvals Page - Filtered Pending:", pending);
             setTimetables(pending);
         } catch (error) {
             console.error("Failed to fetch timetables", error);
@@ -33,25 +38,37 @@ const ApprovalPage = () => {
     };
 
     const handleApprove = async (id) => {
-        try {
-            await timetableApi.approve(id, 'APPROVED', 'Approved by HOD');
-            fetchPendingTimetables();
-        } catch (error) {
-            console.error("Failed to approve", error);
-            alert("Failed to approve timetable");
-        }
+        showConfirm({
+            title: "Approve Timetable?",
+            message: "This will finalize the timetable for the selected department and semester. It will be moved to the official records.",
+            type: "info",
+            onConfirm: async () => {
+                try {
+                    await timetableApi.approve(id, 'APPROVED', 'Approved by HOD');
+                    addNotification("Timetable approved successfully", "success");
+                    fetchPendingTimetables();
+                } catch (error) {
+                    addNotification("Failed to approve timetable", "error");
+                }
+            }
+        });
     };
 
     const handleReject = async (id) => {
-        if (window.confirm("Are you sure you want to reject this timetable?")) {
-            try {
-                await timetableApi.approve(id, 'REJECTED', 'Rejected by HOD');
-                fetchPendingTimetables();
-            } catch (error) {
-                console.error("Failed to reject", error);
-                alert("Failed to reject timetable");
+        showConfirm({
+            title: "Reject Timetable?",
+            message: "Are you sure you want to reject this timetable? This action will mark it as rejected and you will need to generate a new one.",
+            type: "danger",
+            onConfirm: async () => {
+                try {
+                    await timetableApi.approve(id, 'REJECTED', 'Rejected by HOD');
+                    addNotification("Timetable rejected", "warning");
+                    fetchPendingTimetables();
+                } catch (error) {
+                    addNotification("Failed to reject timetable", "error");
+                }
             }
-        }
+        });
     };
 
     const handleView = async (timetable) => {
@@ -140,19 +157,42 @@ const ApprovalPage = () => {
                         <p className="mt-4 text-slate-500">Fetching schedule detail...</p>
                     </div>
                 ) : selectedTimetable ? (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4 text-sm bg-slate-50 p-4 rounded-xl border border-slate-100">
-                            <div>
-                                <span className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Department</span>
-                                <div className="font-bold text-slate-800">{selectedTimetable.department?.name}</div>
+                    <div className="space-y-6">
+                        {/* Enhanced Header Section */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-50 to-white rounded-2xl border border-slate-200 shadow-sm">
+                            <div className="flex flex-wrap gap-4">
+                                <div className="bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Department</span>
+                                    <span className="text-sm font-black text-slate-800 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                        {selectedTimetable.department?.name}
+                                    </span>
+                                </div>
+                                <div className="bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Semester</span>
+                                    <span className="text-sm font-black text-slate-800">
+                                        Phase {selectedTimetable.semester}
+                                    </span>
+                                </div>
                             </div>
-                            <div>
-                                <span className="text-slate-500 font-bold uppercase text-[10px] tracking-wider">Semester</span>
-                                <div className="font-bold text-slate-800">{selectedTimetable.semester}</div>
+
+                            <div className="flex items-center gap-6 pr-4">
+                                <div className="text-right">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-1">Load Status</span>
+                                    <span className="text-lg font-black text-blue-600 tabular-nums">
+                                        {selectedTimetable.slots?.length || 0} <span className="text-[10px] text-slate-400">Slots</span>
+                                    </span>
+                                </div>
+                                <div className="h-10 w-px bg-slate-200 hidden md:block"></div>
+                                <div className="hidden md:flex flex-col">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Security</span>
+                                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100 uppercase">Verified</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="max-h-[60vh] overflow-y-auto">
+                        {/* Grid Container with clean background */}
+                        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
                             <TimetableGrid slots={selectedTimetable.slots || []} />
                         </div>
                     </div>

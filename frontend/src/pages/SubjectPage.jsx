@@ -8,6 +8,7 @@ import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { Loader2, Plus, BookOpen } from 'lucide-react';
+import { useNotificationStore } from '../store/notification.store';
 
 const SubjectPage = () => {
     const navigate = useNavigate();
@@ -26,6 +27,8 @@ const SubjectPage = () => {
         type: 'THEORY',
         lecturesPerWeek: ''
     });
+
+    const { addNotification, showConfirm } = useNotificationStore();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -72,15 +75,20 @@ const SubjectPage = () => {
     };
 
     const handleDelete = async (row) => {
-        if (window.confirm(`Are you sure you want to delete ${row.name}?`)) {
-            try {
-                await subjectApi.delete(row.id);
-                fetchSubjects();
-            } catch (error) {
-                console.error("Failed to delete subject", error);
-                alert("Failed to delete subject");
+        showConfirm({
+            title: "Delete Subject?",
+            message: `Are you sure you want to delete ${row.name}? This will remove it from the curriculum catalog.`,
+            type: "danger",
+            onConfirm: async () => {
+                try {
+                    await subjectApi.delete(row.id);
+                    addNotification("Subject deleted", "success");
+                    fetchSubjects();
+                } catch (error) {
+                    addNotification("Failed to delete subject", "error");
+                }
             }
-        }
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -105,7 +113,7 @@ const SubjectPage = () => {
             fetchSubjects();
         } catch (error) {
             console.error("Failed to save subject", error);
-            alert("Failed to save subject");
+            addNotification("Failed to save subject", "error");
         } finally {
             setSubmitting(false);
         }

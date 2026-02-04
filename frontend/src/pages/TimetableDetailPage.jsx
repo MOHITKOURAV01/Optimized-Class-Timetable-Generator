@@ -4,7 +4,10 @@ import { departmentApi } from '../api/department.api';
 import TimetableGrid from '../components/TimetableGrid';
 import Loader from '../components/Loader';
 import Card from '../components/ui/Card';
-import { Search, Filter, Download, Calendar, Trash2 } from 'lucide-react';
+import { Search, Filter, Download, Calendar, Trash2, Printer } from 'lucide-react';
+import { useNotificationStore } from '../store/notification.store';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const TimetableDetailPage = () => {
     const [departments, setDepartments] = useState([]);
@@ -16,6 +19,8 @@ const TimetableDetailPage = () => {
         departmentId: '',
         semester: ''
     });
+
+    const { addNotification, showConfirm } = useNotificationStore();
 
     useEffect(() => {
         const init = async () => {
@@ -55,20 +60,24 @@ const TimetableDetailPage = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this approved timetable? This action cannot be undone and will free up these slots.")) return;
-
-        try {
-            await timetableApi.delete(id);
-            // Refresh list
-            const updated = timetables.filter(t => t.id !== id);
-            setTimetables(updated);
-            if (selectedTimetable?.id === id) {
-                setSelectedTimetable(null);
+        showConfirm({
+            title: "Delete Timetable?",
+            message: "This will permanently remove this approved timetable and free up these slots for future generation. This action cannot be undone.",
+            type: "danger",
+            onConfirm: async () => {
+                try {
+                    await timetableApi.delete(id);
+                    const updated = timetables.filter(t => t.id !== id);
+                    setTimetables(updated);
+                    if (selectedTimetable?.id === id) {
+                        setSelectedTimetable(null);
+                    }
+                    addNotification("Timetable deleted successfully", "success");
+                } catch (error) {
+                    addNotification("Failed to delete timetable", "error");
+                }
             }
-        } catch (error) {
-            console.error("Failed to delete timetable", error);
-            alert("Failed to delete timetable");
-        }
+        });
     };
 
     const handleFilterChange = (e) => {
@@ -81,6 +90,97 @@ const TimetableDetailPage = () => {
         return matchDept && matchSem;
     });
 
+    const exportToPDF = () => {
+        if (!selectedTimetable) return;
+
+        const doc = new jsPDF('l', 'mm', 'a4'); // landscape
+
+        // 1. ADD HEADER
+        doc.setFillColor(30, 41, 59); // Slate-800
+        doc.rect(0, 0, 297, 40, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("OFFICIAL ACADEMIC TIMETABLE", 14, 20);
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${selectedTimetable.department?.name} | Semester ${selectedTimetable.semester}`, 14, 30);
+
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 240, 30);
+
+        // 2. PREPARE DATA
+        const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
+        const slots = selectedTimetable.slots || [];
+
+        // Use the same segment logic as TimetableGrid
+        const timeTics = new Set(["09:00", "13:00", "14:00", "18:00"]);
+        slots.forEach(s => {
+            if (s.startTime) timeTics.add(s.startTime.substring(0, 5));
+            if (s.endTime) timeTics.add(s.endTime.substring(0, 5));
+        });
+        const sortedTics = Array.from(timeTics).sort();
+        const segments = [];
+        for (let i = 0; i < sortedTics.length - 1; i++) {
+            segments.push({ start: sortedTics[i], end: sortedTics[i + 1], key: `${sortedTics[i]}-${sortedTics[i + 1]}` });
+        }
+
+        const head = [['TIME', ...DAYS]];
+        const body = segments.map(seg => {
+            const row = [`${seg.start} - ${seg.end}`];
+            DAYS.forEach(day => {
+                const slot = slots.find(s =>
+                    s.dayOfWeek.toUpperCase() === day &&
+                    s.startTime.substring(0, 5) <= seg.start &&
+                    s.endTime.substring(0, 5) >= seg.end
+                );
+
+                if (slot) {
+                    row.push(`${slot.subject?.code}\n${slot.subject?.name}\n${slot.classroom?.name}\n${slot.faculty?.name}`);
+                } else {
+                    row.push('');
+                }
+            });
+            return row;
+        });
+
+        // 3. RENDER TABLE
+        doc.autoTable({
+            startY: 50,
+            head: head,
+            body: body,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [30, 41, 59],
+                textColor: [255, 255, 255],
+                fontSize: 10,
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            columnStyles: {
+                0: { fillColor: [248, 250, 252], fontStyle: 'bold', halign: 'center', cellWidth: 35 }
+            },
+            styles: {
+                fontSize: 8,
+                cellPadding: 4,
+                overflow: 'linebreak',
+                halign: 'center',
+                valign: 'middle',
+                font: 'helvetica'
+            },
+            didParseCell: function (data) {
+                if (data.section === 'body' && data.column.index > 0 && data.cell.text[0] !== '') {
+                    // Could add logic here to color cells based on type if needed
+                }
+            }
+        });
+
+        // 4. SAVE
+        doc.save(`Timetable_${selectedTimetable.department?.code}_Sem${selectedTimetable.semester}.pdf`);
+        addNotification("PDF Exported Successfully", "success");
+    };
+
     if (loading) return <Loader />;
 
     return (
@@ -92,10 +192,17 @@ const TimetableDetailPage = () => {
                 </div>
                 <div className="flex gap-2">
                     <button
-                        onClick={() => window.print()}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-all shadow-sm"
+                        onClick={exportToPDF}
+                        disabled={!selectedTimetable}
+                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 disabled:opacity-50"
                     >
-                        <Download className="w-4 h-4" /> Export PDF
+                        <Download className="w-4 h-4 text-blue-400" /> Export Professional PDF
+                    </button>
+                    <button
+                        onClick={() => window.print()}
+                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 font-black uppercase tracking-widest text-xs hover:bg-slate-50 transition-all shadow-sm"
+                    >
+                        <Printer className="w-4 h-4" /> Print
                     </button>
                 </div>
             </div>
@@ -159,19 +266,20 @@ const TimetableDetailPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Delete Button (Only visible on hover or if selected) */}
+                                        {/* Delete Button (Always semi-visible, fully on hover) */}
                                         <button
                                             onClick={(e) => {
+                                                e.preventDefault();
                                                 e.stopPropagation();
                                                 handleDelete(tt.id);
                                             }}
-                                            className={`absolute top-2 right-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity ${selectedTimetable?.id === tt.id
-                                                ? 'bg-blue-500 text-white hover:bg-red-500'
-                                                : 'bg-slate-200 text-slate-600 hover:bg-red-500 hover:text-white'
+                                            className={`absolute top-3 right-3 p-2 rounded-lg z-20 transition-all ${selectedTimetable?.id === tt.id
+                                                ? 'bg-red-500 text-white hover:bg-red-600 shadow-md'
+                                                : 'bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white opacity-40 group-hover:opacity-100'
                                                 }`}
                                             title="Delete Timetable"
                                         >
-                                            <Trash2 className="w-3.5 h-3.5" />
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
                                 ))}

@@ -2,7 +2,20 @@ const prisma = require('../config/prisma');
 
 const getAllSubjects = async () => prisma.subject.findMany({ include: { department: true } });
 const getSubjectById = async (id) => prisma.subject.findUnique({ where: { id: parseInt(id) }, include: { department: true } });
-const createSubject = async (data) => prisma.subject.create({ data });
+const createSubject = async (data) => {
+    const formattedData = {
+        ...data,
+        departmentId: parseInt(data.departmentId),
+        semester: parseInt(data.semester),
+        credits: data.credits ? parseInt(data.credits) : null,
+        lecturesPerWeek: data.lecturesPerWeek ? parseInt(data.lecturesPerWeek) : null,
+        labsPerWeek: data.labsPerWeek ? parseInt(data.labsPerWeek) : 0,
+        classesPerWeek: data.classesPerWeek ? parseInt(data.classesPerWeek) : null,
+        classesPerDay: data.classesPerDay ? parseInt(data.classesPerDay) : null,
+        durationPerClass: data.durationPerClass ? parseInt(data.durationPerClass) : null,
+    };
+    return prisma.subject.create({ data: formattedData });
+};
 const updateSubject = async (id, data) => prisma.subject.update({ where: { id: parseInt(id) }, data });
 const deleteSubject = async (id) => {
     const subjectId = parseInt(id);

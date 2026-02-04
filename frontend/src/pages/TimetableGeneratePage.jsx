@@ -6,12 +6,14 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { Loader2, Calendar, CheckCircle, AlertTriangle } from 'lucide-react';
 import TimetableGrid from '../components/TimetableGrid';
+import { useNotificationStore } from '../store/notification.store';
 
 const TimetableGeneratePage = () => {
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
     const [generatedTimetable, setGeneratedTimetable] = useState(null);
+    const { addNotification, showConfirm } = useNotificationStore();
     const [formData, setFormData] = useState({
         departmentId: '',
         semester: '',
@@ -47,7 +49,8 @@ const TimetableGeneratePage = () => {
             setGeneratedTimetable(result);
         } catch (error) {
             console.error("Failed to generate timetable", error);
-            alert("Failed to generate timetable. Please try again.");
+            const errorMessage = error.response?.data?.error || "Failed to generate timetable. Please try again.";
+            addNotification(errorMessage, "error");
         } finally {
             setGenerating(false);
         }
@@ -56,14 +59,12 @@ const TimetableGeneratePage = () => {
     const handleSave = async () => {
         if (!generatedTimetable) return;
         try {
-            // Assuming the result contains the timetable structure to save
-            // This might need adjustment based on your exact API response structure
             await timetableApi.create(generatedTimetable);
-            alert("Timetable saved successfully!");
+            addNotification("Timetable saved and sent for approval!", "success");
             setGeneratedTimetable(null);
         } catch (error) {
             console.error("Failed to save timetable", error);
-            alert("Failed to save timetable");
+            addNotification("Failed to save timetable", "error");
         }
     };
 

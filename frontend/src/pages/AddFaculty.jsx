@@ -5,10 +5,12 @@ import { departmentApi } from '../api/department.api';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { Loader2, ArrowLeft, Info } from 'lucide-react';
+import { useNotificationStore } from '../store/notification.store';
 
 const AddFaculty = () => {
     const navigate = useNavigate();
     const [submitting, setSubmitting] = useState(false);
+    const { addNotification } = useNotificationStore();
     const [departments, setDepartments] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
@@ -50,11 +52,12 @@ const AddFaculty = () => {
             };
 
             await facultyApi.create(payload);
+            addNotification("Faculty member registered successfully!", "success");
             navigate('/dashboard/faculty');
         } catch (error) {
             console.error("Failed to save faculty", error);
             const message = error.response?.data?.message || error.message || "Failed to save faculty";
-            alert(`Error: ${message}`);
+            addNotification(`Error: ${message}`, "error");
         } finally {
             setSubmitting(false);
         }
