@@ -4,14 +4,21 @@ const getGenerationData = async (departmentId, semester) => {
     const deptId = parseInt(departmentId);
     const sem = parseInt(semester);
 
+    if (isNaN(deptId) || isNaN(sem)) {
+        throw new Error(`Invalid parameters: departmentId=${departmentId}, semester=${semester}`);
+    }
+
     // 1. Fetch Department info
     const department = await prisma.department.findUnique({
         where: { id: deptId }
     });
 
+    if (!department) throw new Error(`Department with ID ${deptId} not found`);
+
     // 2. Fetch Faculty belonging to this department
     const faculty = await prisma.faculty.findMany({
         where: { departmentId: deptId },
+
         include: {
             subjects: {
                 include: { subject: true }
@@ -83,10 +90,12 @@ const getGenerationData = async (departmentId, semester) => {
         })),
         constraints: {
             workingDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
-            slotsPerDay: 8,
+            slotsPerDay: 16,
             timeSlots: [
-                "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00",
-                "14:00-15:00", "15:00-16:00", "16:00-17:00", "17:00-18:00"
+                "09:00-09:30", "09:30-10:00", "10:00-10:30", "10:30-11:00",
+                "11:00-11:30", "11:30-12:00", "12:00-12:30", "12:30-13:00",
+                "14:00-14:30", "14:30-15:00", "15:00-15:30", "15:30-16:00",
+                "16:00-16:30", "16:30-17:00", "17:00-17:30", "17:30-18:00"
             ]
         }
     };
@@ -95,23 +104,21 @@ const getGenerationData = async (departmentId, semester) => {
 const saveGeneratedTimetable = async ({ departmentId, semester, name, generatedById, slots }) => {
     // 0. CLEANUP: Delete any existing PENDING timetables for this Dept/Sem to avoid conflicts
     // --- DEEP CLEANUP START ---
-    // 1. Find PENDING Timetables for this context
-    const pendingTimetables = await prisma.timetable.findMany({
+    // 1. Find ALL existing Timetables for this context (Pending, Approved, etc.)
+    const existingTts = await prisma.timetable.findMany({
         where: {
             departmentId: parseInt(departmentId),
-            semester: parseInt(semester),
-            status: 'PENDING'
+            semester: parseInt(semester)
         },
         select: { id: true }
     });
-    const pendingIds = pendingTimetables.map(t => t.id);
+    const ttIds = existingTts.map(t => t.id);
 
-    // 2. Delete Slots linked to PENDING timetables OR Orphaned slots (garbage) for this Dept/Sem
-    // This clears the "Unique Constraint" blockers (Zombies)
+    // 2. Delete Slots linked to these timetables OR Orphaned slots for this Dept/Sem
     await prisma.timetableSlot.deleteMany({
         where: {
             OR: [
-                { timetableId: { in: pendingIds } },
+                { timetableId: { in: ttIds } },
                 {
                     timetableId: null,
                     departmentId: parseInt(departmentId),
@@ -121,9 +128,14 @@ const saveGeneratedTimetable = async ({ departmentId, semester, name, generatedB
         }
     });
 
-    // 3. Delete the PENDING Timetables themselves
+    // 3. Delete linked Approvals (to satisfy FK constraints)
+    await prisma.approval.deleteMany({
+        where: { timetableId: { in: ttIds } }
+    });
+
+    // 4. Delete the Timetables themselves
     await prisma.timetable.deleteMany({
-        where: { id: { in: pendingIds } }
+        where: { id: { in: ttIds } }
     });
     // --- DEEP CLEANUP END ---
 
@@ -150,12 +162,12 @@ const saveGeneratedTimetable = async ({ departmentId, semester, name, generatedB
         semester: parseInt(semester),
         departmentId: parseInt(departmentId),
         timetableId: timetable.id,
+        slotType: slot.slotType || 'LECTURE',
         isFixed: false
     }));
 
     await prisma.timetableSlot.createMany({
-        data: slotData,
-        skipDuplicates: true // Still keep this as final safety
+        data: slotData
     });
 
     return await prisma.timetable.findUnique({
