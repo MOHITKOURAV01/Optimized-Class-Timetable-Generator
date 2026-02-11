@@ -7,7 +7,7 @@ import Card from '../components/ui/Card';
 import { Search, Filter, Download, Calendar, Trash2, Printer } from 'lucide-react';
 import { useNotificationStore } from '../store/notification.store';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const TimetableDetailPage = () => {
     const [departments, setDepartments] = useState([]);
@@ -19,6 +19,7 @@ const TimetableDetailPage = () => {
         departmentId: '',
         semester: ''
     });
+    const [exporting, setExporting] = useState(false);
 
     const { addNotification, showConfirm } = useNotificationStore();
 
@@ -92,29 +93,50 @@ const TimetableDetailPage = () => {
 
     const exportToPDF = () => {
         if (!selectedTimetable) return;
+        setExporting(true);
 
         const doc = new jsPDF('l', 'mm', 'a4'); // landscape
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
 
-        // 1. ADD HEADER
+        // 1. PROFESSIONAL HEADER
+        // Accent bar at the top
         doc.setFillColor(30, 41, 59); // Slate-800
-        doc.rect(0, 0, 297, 40, 'F');
+        doc.rect(0, 0, pageWidth, 40, 'F');
+
+        // Secondary accent line
+        doc.setFillColor(59, 130, 246); // Blue-500
+        doc.rect(0, 40, pageWidth, 2, 'F');
 
         doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
+        doc.setFontSize(24);
         doc.setFont("helvetica", "bold");
-        doc.text("OFFICIAL ACADEMIC TIMETABLE", 14, 20);
+        doc.text("ACADEMIC TIMETABLE", 14, 20);
 
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(148, 163, 184); // Slate-400
+        doc.text("OFFICIALLY APPROVED SCHEDULE", 14, 26);
+
+        // Department & Semester Info
+        doc.setTextColor(255, 255, 255);
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
-        doc.text(`${selectedTimetable.department?.name} | Semester ${selectedTimetable.semester}`, 14, 30);
+        doc.text(`${selectedTimetable.department?.name || 'All Departments'}`, 14, 34);
 
-        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 240, 30);
+        doc.setFont("helvetica", "bold");
+        doc.text(`SEMESTER ${selectedTimetable.semester}`, pageWidth - 14, 20, { align: 'right' });
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, pageWidth - 14, 26, { align: 'right' });
+        doc.text(`Total Slots: ${selectedTimetable.slots?.length || 0}`, pageWidth - 14, 32, { align: 'right' });
 
         // 2. PREPARE DATA
         const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
         const slots = selectedTimetable.slots || [];
 
-        // Use the same segment logic as TimetableGrid
+        // Time identification logic (consistent with UI)
         const timeTics = new Set(["09:00", "13:00", "14:00", "18:00"]);
         slots.forEach(s => {
             if (s.startTime) timeTics.add(s.startTime.substring(0, 5));
@@ -128,7 +150,7 @@ const TimetableDetailPage = () => {
 
         const head = [['TIME', ...DAYS]];
         const body = segments.map(seg => {
-            const row = [`${seg.start} - ${seg.end}`];
+            const row = [{ content: `${seg.start} - ${seg.end}`, styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }];
             DAYS.forEach(day => {
                 const slot = slots.find(s =>
                     s.dayOfWeek.toUpperCase() === day &&
@@ -137,48 +159,93 @@ const TimetableDetailPage = () => {
                 );
 
                 if (slot) {
-                    row.push(`${slot.subject?.code}\n${slot.subject?.name}\n${slot.classroom?.name}\n${slot.faculty?.name}`);
+                    const type = slot.slotType === 'LAB' ? 'LABORATORY' : 'LECTURE';
+                    row.push({
+                        content: `${slot.subject?.code}\n${slot.subject?.name}\n${slot.classroom?.name}\n${slot.faculty?.name}`,
+                        styles: {
+                            fillColor: slot.slotType === 'LAB' ? [245, 243, 255] : [239, 246, 255], // Light Purple or Light Blue
+                            textColor: slot.slotType === 'LAB' ? [107, 33, 168] : [30, 64, 175], // Deep Purple or Deep Blue
+                        }
+                    });
                 } else {
-                    row.push('');
+                    row.push({ content: '', styles: { fillColor: [255, 255, 255] } });
                 }
             });
             return row;
         });
 
         // 3. RENDER TABLE
-        doc.autoTable({
-            startY: 50,
-            head: head,
-            body: body,
-            theme: 'grid',
-            headStyles: {
-                fillColor: [30, 41, 59],
-                textColor: [255, 255, 255],
-                fontSize: 10,
-                fontStyle: 'bold',
-                halign: 'center'
-            },
-            columnStyles: {
-                0: { fillColor: [248, 250, 252], fontStyle: 'bold', halign: 'center', cellWidth: 35 }
-            },
-            styles: {
-                fontSize: 8,
-                cellPadding: 4,
-                overflow: 'linebreak',
-                halign: 'center',
-                valign: 'middle',
-                font: 'helvetica'
-            },
-            didParseCell: function (data) {
-                if (data.section === 'body' && data.column.index > 0 && data.cell.text[0] !== '') {
-                    // Could add logic here to color cells based on type if needed
+        try {
+            autoTable(doc, {
+                startY: 50,
+                head: head,
+                body: body,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [30, 41, 59],
+                    textColor: [255, 255, 255],
+                    fontSize: 10,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    cellPadding: 4
+                },
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 3,
+                    overflow: 'linebreak',
+                    halign: 'center',
+                    valign: 'middle',
+                    font: 'helvetica',
+                    lineWidth: 0.1,
+                    lineColor: [226, 232, 240]
+                },
+                columnStyles: {
+                    0: { cellWidth: 35 }
+                },
+                margin: { left: 14, right: 14 },
+                didDrawPage: (data) => {
+                    // FOOTER
+                    const pWidth = doc.internal.pageSize.getWidth();
+                    const pHeight = doc.internal.pageSize.getHeight();
+                    doc.setFontSize(8);
+                    doc.setTextColor(148, 163, 184);
+                    doc.text(
+                        `Page ${data.pageNumber} | Generated by AI Scheduler Pro`,
+                        pWidth / 2,
+                        pHeight - 10,
+                        { align: 'center' }
+                    );
+                    doc.text(
+                        `© ${new Date().getFullYear()} Optimized Class Timetable Generator`,
+                        14,
+                        pHeight - 10
+                    );
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error("AutoTable error:", error);
+            addNotification("Database error while generating PDF", "error");
+            setExporting(false);
+            return;
+        }
 
         // 4. SAVE
-        doc.save(`Timetable_${selectedTimetable.department?.code}_Sem${selectedTimetable.semester}.pdf`);
-        addNotification("PDF Exported Successfully", "success");
+        const filename = `Timetable_${selectedTimetable.department?.code || 'GEN'}_Sem${selectedTimetable.semester}.pdf`;
+        console.log("Saving PDF...", filename);
+
+        // Diagnostic: Check output size
+        const pdfOutput = doc.output('arraybuffer');
+        console.log("PDF generated, size:", pdfOutput.byteLength, "bytes");
+
+        if (pdfOutput.byteLength < 1000) {
+            console.warn("PDF appears unusually small, might be corrupted");
+        }
+
+        doc.save(filename);
+        console.log("Save command issued");
+        addNotification("Professional PDF Exported Successfully", "success");
+        setExporting(false);
     };
 
     if (loading) return <Loader />;
@@ -193,10 +260,20 @@ const TimetableDetailPage = () => {
                 <div className="flex gap-2">
                     <button
                         onClick={exportToPDF}
-                        disabled={!selectedTimetable}
+                        disabled={!selectedTimetable || exporting}
                         className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 text-white font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 disabled:opacity-50"
                     >
-                        <Download className="w-4 h-4 text-blue-400" /> Export Professional PDF
+                        {exporting ? (
+                            <>
+                                <Loader size="sm" color="white" />
+                                <span>Generating PDF...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Download className="w-4 h-4 text-blue-400" />
+                                <span>Export Professional PDF</span>
+                            </>
+                        )}
                     </button>
                     <button
                         onClick={() => window.print()}
