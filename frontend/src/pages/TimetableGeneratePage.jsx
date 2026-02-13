@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { departmentApi } from '../api/department.api';
 import { timetableApi } from '../api/timetable.api';
 import Loader from '../components/Loader';
@@ -11,6 +12,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const TimetableGeneratePage = () => {
+    const navigate = useNavigate();
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
@@ -313,8 +315,8 @@ const TimetableGeneratePage = () => {
                                     <Button variant="secondary" onClick={exportToPDF} className="bg-slate-100 hover:bg-slate-200 text-slate-700">
                                         Export Draft PDF
                                     </Button>
-                                    <Button onClick={handleSave}>
-                                        Save Timetable
+                                    <Button onClick={() => navigate('/dashboard/approvals')}>
+                                        Go to Approvals
                                     </Button>
                                 </div>
                             </div>
