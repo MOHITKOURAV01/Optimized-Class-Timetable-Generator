@@ -4,15 +4,19 @@ const getAllSubjects = async (userId) => prisma.subject.findMany({ where: { user
 const getSubjectById = async (id, userId) => prisma.subject.findFirst({ where: { id: parseInt(id), userId }, include: { department: true } });
 const createSubject = async (data, userId) => {
     const formattedData = {
-        ...data,
+        name: data.name,
+        code: data.code,
         departmentId: parseInt(data.departmentId),
-        semester: parseInt(data.semester),
+        semester: data.semester ? parseInt(data.semester) : 1,
+        type: data.type || 'LECTURE',
         credits: data.credits ? parseInt(data.credits) : null,
         lecturesPerWeek: data.lecturesPerWeek ? parseInt(data.lecturesPerWeek) : null,
         labsPerWeek: data.labsPerWeek ? parseInt(data.labsPerWeek) : 0,
         classesPerWeek: data.classesPerWeek ? parseInt(data.classesPerWeek) : null,
         classesPerDay: data.classesPerDay ? parseInt(data.classesPerDay) : null,
         durationPerClass: data.durationPerClass ? parseInt(data.durationPerClass) : null,
+        prerequisites: data.prerequisites || null,
+        allowedRoomTypes: data.allowedRoomTypes || null,
         userId
     };
     return prisma.subject.create({ data: formattedData });
