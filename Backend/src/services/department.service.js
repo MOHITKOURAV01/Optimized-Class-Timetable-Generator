@@ -1,7 +1,8 @@
 const prisma = require('../config/prisma');
 
-const getAllDepartments = async () => {
+const getAllDepartments = async (userId) => {
     return await prisma.department.findMany({
+        where: { userId },
         include: {
             _count: {
                 select: { faculties: true, classrooms: true, subjects: true }
@@ -10,9 +11,9 @@ const getAllDepartments = async () => {
     });
 };
 
-const getDepartmentById = async (id) => {
-    return await prisma.department.findUnique({
-        where: { id: parseInt(id) },
+const getDepartmentById = async (id, userId) => {
+    return await prisma.department.findFirst({
+        where: { id: parseInt(id), userId },
         include: {
             faculties: true,
             classrooms: true,
@@ -21,20 +22,25 @@ const getDepartmentById = async (id) => {
     });
 };
 
-const createDepartment = async (data) => {
+const createDepartment = async (data, userId) => {
     return await prisma.department.create({
-        data
+        data: { ...data, userId }
     });
 };
 
-const updateDepartment = async (id, data) => {
+const updateDepartment = async (id, data, userId) => {
+    // Verify ownership
+    const dept = await prisma.department.findFirst({ where: { id: parseInt(id), userId } });
+    if (!dept) throw { status: 404, message: 'Department not found' };
     return await prisma.department.update({
         where: { id: parseInt(id) },
         data
     });
 };
 
-const deleteDepartment = async (id) => {
+const deleteDepartment = async (id, userId) => {
+    const dept = await prisma.department.findFirst({ where: { id: parseInt(id), userId } });
+    if (!dept) throw { status: 404, message: 'Department not found' };
     return await prisma.department.delete({
         where: { id: parseInt(id) }
     });

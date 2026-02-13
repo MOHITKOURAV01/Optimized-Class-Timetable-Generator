@@ -13,20 +13,21 @@ datasource db {
 model Department {
   id             Int               @id @default(autoincrement())
   name           String
-  code           String            @unique
+  code           String
   headOfDepartment String?
   totalFaculty   Int?
   totalStudents  Int?
+  userId         Int
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
   // Relations
+  user           AuthorizedUser    @relation(fields: [userId], references: [id])
   faculties      Faculty[]
   classrooms     Classroom[]
   subjects       Subject[]
   timetableSlots TimetableSlot[]
   timetables     Timetable[]
-  authorizedUsers AuthorizedUser[]
 }
 
 // --------------------------
@@ -35,14 +36,16 @@ model Department {
 model Faculty {
   id                  Int        @id @default(autoincrement())
   name                String
-  email               String     @unique
+  email               String
   phone               String?
   maxWeeklyLoad       Int
   averageLeavesPerMonth Float    @default(0)
   availableDays       String    // JSON string: ["MONDAY", "TUESDAY", ...]
   preferredSlots      String?   // JSON string: ["09:00-10:00", ...]
   departmentId        Int
+  userId              Int
   department          Department @relation(fields: [departmentId], references: [id])
+  user                AuthorizedUser @relation(fields: [userId], references: [id])
 
   subjects            SubjectFaculty[]
   timetableSlots      TimetableSlot[]
@@ -57,10 +60,12 @@ model Classroom {
   year         Int
   semester     Int
   departmentId Int
+  userId       Int
   createdAt    DateTime  @default(now())
 
   // Relations
   department   Department @relation(fields: [departmentId], references: [id])
+  user         AuthorizedUser @relation(fields: [userId], references: [id])
   students     Student[]
   timetableSlots TimetableSlot[]
 }
@@ -88,9 +93,10 @@ model Student {
 // --------------------------
 model Subject {
   id             Int       @id @default(autoincrement())
-  code           String    @unique
+  code           String
   name           String
   departmentId   Int
+  userId         Int
   credits        Int?
   lecturesPerWeek Int?
   labsPerWeek    Int?      @default(0)
@@ -107,8 +113,7 @@ model Subject {
 
   // Relations
   department    Department @relation(fields: [departmentId], references: [id])
-  // Optional classroom assignment handled via TimetableSlot; removed direct classroom relation to avoid
-  // an incorrect self-relation.
+  user          AuthorizedUser @relation(fields: [userId], references: [id])
   timetableSlots TimetableSlot[]
   facultyAssignments SubjectFaculty[]
 }
@@ -162,20 +167,18 @@ model AuthorizedUser {
   name         String
   email        String    @unique
   password     String
-  role         String    @default("FACULTY") // SUPERADMIN | TIMETABLE_ADMIN | HOD | FACULTY | VIEWER
-  departmentId Int?
   phone        String?
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  department   Department? @relation(fields: [departmentId], references: [id])
+  departments  Department[]
+  faculties    Faculty[]
+  classrooms   Classroom[]
+  subjects     Subject[]
   approvals    Approval[]
   generatedTimetables Timetable[]
 }
-
-// Enum values stored as strings in SQLite
-// Role: SUPERADMIN | TIMETABLE_ADMIN | HOD | FACULTY | VIEWER
 
 // --------------------------
 // Timetables
@@ -198,9 +201,6 @@ model Timetable {
   approvals    Approval[]
 }
 
-// Enum values stored as strings in SQLite
-// TimetableStatus: PENDING | APPROVED | REJECTED
-
 // --------------------------
 // Approval
 // --------------------------
@@ -216,7 +216,3 @@ model Approval {
   timetable   Timetable      @relation(fields: [timetableId], references: [id])
   approver    AuthorizedUser @relation(fields: [approverId], references: [id])
 }
-
-// Enum values stored as strings in SQLite
-// ApprovalStatus: PENDING | APPROVED | REJECTED
-

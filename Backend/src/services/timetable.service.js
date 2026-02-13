@@ -1,6 +1,6 @@
 const prisma = require('../config/prisma');
 
-const getGenerationData = async (departmentId, semester) => {
+const getGenerationData = async (departmentId, semester, userId) => {
     const deptId = parseInt(departmentId);
     const sem = parseInt(semester);
 
@@ -8,16 +8,16 @@ const getGenerationData = async (departmentId, semester) => {
         throw new Error(`Invalid parameters: departmentId=${departmentId}, semester=${semester}`);
     }
 
-    // 1. Fetch Department info
-    const department = await prisma.department.findUnique({
-        where: { id: deptId }
+    // 1. Fetch Department info (scoped to user)
+    const department = await prisma.department.findFirst({
+        where: { id: deptId, userId }
     });
 
     if (!department) throw new Error(`Department with ID ${deptId} not found`);
 
     // 2. Fetch Faculty belonging to this department
     const faculty = await prisma.faculty.findMany({
-        where: { departmentId: deptId },
+        where: { departmentId: deptId, userId },
 
         include: {
             subjects: {
@@ -30,13 +30,14 @@ const getGenerationData = async (departmentId, semester) => {
     const subjects = await prisma.subject.findMany({
         where: {
             departmentId: deptId,
-            semester: sem
+            semester: sem,
+            userId
         }
     });
 
     // 4. Fetch Classrooms for this department
     const classrooms = await prisma.classroom.findMany({
-        where: { departmentId: deptId }
+        where: { departmentId: deptId, userId }
     });
 
     // 5. Fetch EXISTING Occupied Slots (from Approved/Pending Timetables of OTHER semesters/depts)
@@ -184,9 +185,9 @@ const saveGeneratedTimetable = async ({ departmentId, semester, name, generatedB
     });
 };
 
-const getTimetableById = async (id) => {
-    return await prisma.timetable.findUnique({
-        where: { id: parseInt(id) },
+const getTimetableById = async (id, userId) => {
+    return await prisma.timetable.findFirst({
+        where: { id: parseInt(id), generatedById: userId },
         include: {
             slots: {
                 include: {
@@ -200,13 +201,15 @@ const getTimetableById = async (id) => {
                 select: { name: true, email: true }
             },
             approvals: {
-                include: { approver: { select: { name: true, role: true } } }
+                include: { approver: { select: { name: true } } }
             }
         }
     });
 };
 
-const deleteTimetable = async (id) => {
+const deleteTimetable = async (id, userId) => {
+    const tt = await prisma.timetable.findFirst({ where: { id: parseInt(id), generatedById: userId } });
+    if (!tt) throw { status: 404, message: 'Timetable not found' };
     // 1. Delete Approvals first (FK Constraint)
     await prisma.approval.deleteMany({
         where: { timetableId: parseInt(id) }
@@ -218,14 +221,14 @@ const deleteTimetable = async (id) => {
     });
 
     // 3. Delete Timetable
-
     return await prisma.timetable.delete({
         where: { id: parseInt(id) }
     });
 };
 
-const getAllTimetables = async (departmentId) => {
-    const where = departmentId ? { slots: { some: { departmentId: parseInt(departmentId) } } } : {};
+const getAllTimetables = async (userId, departmentId) => {
+    const where = { generatedById: userId };
+    if (departmentId) where.departmentId = parseInt(departmentId);
 
     return await prisma.timetable.findMany({
         where,

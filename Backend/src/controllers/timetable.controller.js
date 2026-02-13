@@ -14,8 +14,8 @@ const generateTimetable = async (req, res, next) => {
             return res.status(400).json({ error: "Invalid departmentId or semester" });
         }
 
-        // 1. Get Data
-        const data = await timetableService.getGenerationData(dId, sem);
+        // 1. Get Data (scoped to user)
+        const data = await timetableService.getGenerationData(dId, sem, generatedById);
 
         // 2. Pre-Generation Requirements Check
         if (!data.subjects || data.subjects.length === 0) {
@@ -64,9 +64,7 @@ const generateTimetable = async (req, res, next) => {
 
         // --- Fallback Mechanism ---
         try {
-            // Re-fetch data if needed or just use 'data' from above if scope allows. 
-            // We need to move 'data' variable declaration up or re-fetch.
-            const data = await timetableService.getGenerationData(req.body.departmentId, req.body.semester);
+            const data = await timetableService.getGenerationData(req.body.departmentId, req.body.semester, req.user.id);
 
             console.log("--- FALLBACK DEBUG ---");
             console.log(`Request - Dept: ${req.body.departmentId}, Sem: ${req.body.semester}`);
@@ -75,13 +73,10 @@ const generateTimetable = async (req, res, next) => {
             console.log("----------------------");
 
             const fallbackSlots = [];
-            // Use Set to track conflicts: "Day-Time-RoomID"
             const usedSlots = new Set();
 
-            // Populate usedSlots with occupiedSlots from other timetables (fetched in getGenerationData)
             if (data.occupiedSlots) {
                 data.occupiedSlots.forEach(s => {
-                    // Normalize keys: MONDAY-09:00-1
                     usedSlots.add(`${s.day}-${s.time}-${s.classroomId}`);
                 });
             }
@@ -97,31 +92,25 @@ const generateTimetable = async (req, res, next) => {
                 { start: "16:00", end: "17:00" }
             ];
 
-            // Distribute subjects
             data.subjects.forEach(subject => {
                 const totalNeeded = (subject.lecturesPerWeek || 0) + (subject.labsPerWeek || 0);
                 let assigned = 0;
 
-                // Try days
                 for (const day of days) {
                     if (assigned >= totalNeeded) break;
 
-                    // Try times
                     for (const time of timeSlots) {
                         if (assigned >= totalNeeded) break;
 
-                        // Find FREE Room
                         const freeRoom = data.classrooms.find(room => {
                             const key = `${day}-${time.start}-${room.id}`;
                             return !usedSlots.has(key);
                         });
 
                         if (freeRoom) {
-                            // Assign
                             const key = `${day}-${time.start}-${freeRoom.id}`;
                             usedSlots.add(key);
 
-                            // Determine slot type based on assigned count
                             const currentSlotType = assigned < (subject.lecturesPerWeek || 0) ? 'LECTURE' : 'LAB';
 
                             fallbackSlots.push({
@@ -130,7 +119,6 @@ const generateTimetable = async (req, res, next) => {
                                 endTime: time.end,
                                 subjectId: subject.id,
                                 slotType: currentSlotType,
-                                // Corrected faculty assignment
                                 facultyId: data.faculty[0] ? data.faculty[0].id : null,
                                 classroomId: freeRoom.id
                             });
@@ -155,14 +143,14 @@ const generateTimetable = async (req, res, next) => {
 
         } catch (fallbackError) {
             console.error("Fallback generation failed:", fallbackError);
-            next(error); // Return original error if fallback also fails
+            next(error);
         }
     }
 };
 
 const getTimetable = async (req, res, next) => {
     try {
-        const timetable = await timetableService.getTimetableById(req.params.id);
+        const timetable = await timetableService.getTimetableById(req.params.id, req.user.id);
         if (!timetable) {
             return res.status(404).json({ error: "Timetable not found" });
         }
@@ -175,7 +163,7 @@ const getTimetable = async (req, res, next) => {
 const getTimetables = async (req, res, next) => {
     try {
         const { departmentId } = req.query;
-        const timetables = await timetableService.getAllTimetables(departmentId);
+        const timetables = await timetableService.getAllTimetables(req.user.id, departmentId);
         res.json(timetables);
     } catch (error) {
         next(error);
@@ -184,14 +172,8 @@ const getTimetables = async (req, res, next) => {
 
 const approveTimetable = async (req, res, next) => {
     try {
-        const { status, comments } = req.body; // status: 'APPROVED' | 'REJECTED'
+        const { status, comments } = req.body;
         const approverId = req.user.id;
-        const { role } = req.user;
-
-        // Role Check: Only HOD, TIMETABLE_ADMIN, or SUPERADMIN can approve
-        if (!['HOD', 'TIMETABLE_ADMIN', 'SUPERADMIN', 'FACULTY'].includes(role)) {
-            return res.status(403).json({ error: "Insufficient permissions to approve timetables" });
-        }
 
         if (!['APPROVED', 'REJECTED'].includes(status)) {
             return res.status(400).json({ error: "Invalid status. Must be APPROVED or REJECTED" });
@@ -207,7 +189,7 @@ const approveTimetable = async (req, res, next) => {
 
 const deleteTimetable = async (req, res, next) => {
     try {
-        await timetableService.deleteTimetable(req.params.id);
+        await timetableService.deleteTimetable(req.params.id, req.user.id);
         res.status(200).json({ message: "Timetable deleted successfully" });
     } catch (error) {
         next(error);

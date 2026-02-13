@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const registerUser = async (userData) => {
-    const { name, email, password, role, departmentId } = userData;
+    const { name, email, password } = userData;
 
     // Check if user exists
     const existingUser = await prisma.authorizedUser.findUnique({
@@ -23,9 +23,7 @@ const registerUser = async (userData) => {
         data: {
             name,
             email,
-            password: hashedPassword,
-            role: role || 'FACULTY',
-            departmentId: departmentId ? parseInt(departmentId) : null
+            password: hashedPassword
         }
     });
 
@@ -50,9 +48,9 @@ const loginUser = async ({ email, password }) => {
         throw { status: 401, message: 'Invalid credentials' };
     }
 
-    // Generate Token
+    // Generate Token (no role, no departmentId)
     const token = jwt.sign(
-        { id: user.id, role: user.role, departmentId: user.departmentId },
+        { id: user.id },
         process.env.JWT_SECRET,
         { expiresIn: '1d' }
     );
