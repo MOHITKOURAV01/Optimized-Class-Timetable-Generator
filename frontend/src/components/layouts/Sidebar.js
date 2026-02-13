@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Role } from '../../types/types';
 import {
     LayoutDashboard,
     Building2,
@@ -10,39 +9,34 @@ import {
     CalendarDays,
     CheckSquare,
     Settings,
-    LogOut
 } from 'lucide-react';
 
 const Sidebar = () => {
     const { user } = useAuth();
 
     const menuItems = [
-        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: [Role.SUPERADMIN, Role.TIMETABLE_ADMIN, Role.HOD, Role.FACULTY, Role.VIEWER] },
-        { path: '/dashboard/departments', label: 'Departments', icon: Building2, roles: [Role.SUPERADMIN, Role.TIMETABLE_ADMIN] },
-        { path: '/dashboard/faculty', label: 'Faculty', icon: Users, roles: [Role.SUPERADMIN, Role.TIMETABLE_ADMIN, Role.HOD] },
-        { path: '/dashboard/classrooms', label: 'Classrooms', icon: School, roles: [Role.SUPERADMIN, Role.TIMETABLE_ADMIN] },
-        { path: '/dashboard/subjects', label: 'Subjects', icon: BookOpen, roles: [Role.SUPERADMIN, Role.TIMETABLE_ADMIN, Role.HOD] },
-        { path: '/dashboard/timetable', label: 'Timetable', icon: CalendarDays, roles: [Role.SUPERADMIN, Role.TIMETABLE_ADMIN, Role.HOD, Role.FACULTY] },
-        { path: '/dashboard/approvals', label: 'Approvals', icon: CheckSquare, roles: [Role.SUPERADMIN, Role.TIMETABLE_ADMIN, Role.HOD] },
-        { path: '/settings', label: 'Settings', icon: Settings, roles: [Role.SUPERADMIN, Role.TIMETABLE_ADMIN, Role.HOD, Role.FACULTY, Role.VIEWER] },
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/dashboard/departments', label: 'Departments', icon: Building2 },
+        { path: '/dashboard/faculty', label: 'Faculty', icon: Users },
+        { path: '/dashboard/classrooms', label: 'Classrooms', icon: School },
+        { path: '/dashboard/subjects', label: 'Subjects', icon: BookOpen },
+        { path: '/dashboard/timetable', label: 'Timetable', icon: CalendarDays },
+        { path: '/dashboard/approvals', label: 'Approvals', icon: CheckSquare },
+        { path: '/settings', label: 'Settings', icon: Settings },
     ];
-
-    const filteredItems = menuItems.filter(item => user && item.roles.includes(user.role));
 
     return (
         <aside className="w-72 bg-slate-900 text-slate-300 flex flex-col shadow-2xl transition-all duration-300">
             <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                    <CalendarDays className="w-5 h-5 text-white" />
-                </div>
-                <h1 className="text-xl font-bold text-white tracking-tight">TimetableGen</h1>
+                <img src="/schedulify-logo.png" alt="Schedulify" className="w-8 h-8 rounded-lg object-cover" />
+                <h1 className="text-xl font-bold text-white tracking-tight">Schedulify</h1>
             </div>
 
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
                 <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-4 mt-2">
                     Menu
                 </div>
-                {filteredItems.map((item) => {
+                {menuItems.map((item) => {
                     const Icon = item.icon;
                     return (
                         <NavLink
@@ -70,7 +64,7 @@ const Sidebar = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">{user?.name || 'User'}</p>
-                        <p className="text-xs text-slate-500 truncate">{user?.role || 'Role'}</p>
+                        <p className="text-xs text-slate-500 truncate">{user?.email || ''}</p>
                     </div>
                 </div>
             </div>

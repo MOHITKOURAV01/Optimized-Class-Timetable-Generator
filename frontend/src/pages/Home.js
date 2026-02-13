@@ -12,8 +12,8 @@ const Home = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center">
-                            <Calendar className="h-8 w-8 text-blue-600" />
-                            <span className="ml-2 text-xl font-bold text-slate-900">TimetableGen</span>
+                            <img src="/schedulify-logo.png" alt="Schedulify" className="h-8 w-8 rounded-lg object-cover" />
+                            <span className="ml-2 text-xl font-bold text-slate-900">Schedulify</span>
                         </div>
                         <div className="flex items-center space-x-4">
                             <Link to="/login" className="text-slate-600 hover:text-blue-600 font-medium transition-colors">
@@ -172,11 +172,11 @@ const Home = () => {
             <footer className="bg-slate-50 py-12 border-t border-slate-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
                     <div className="flex items-center mb-4 md:mb-0">
-                        <Calendar className="h-6 w-6 text-blue-600" />
-                        <span className="ml-2 text-lg font-bold text-slate-900">TimetableGen</span>
+                        <img src="/schedulify-logo.png" alt="Schedulify" className="h-6 w-6 rounded-lg object-cover" />
+                        <span className="ml-2 text-lg font-bold text-slate-900">Schedulify</span>
                     </div>
                     <div className="text-slate-500 text-sm">
-                        © {new Date().getFullYear()} TimetableGen. All rights reserved.
+                        © {new Date().getFullYear()} Schedulify. All rights reserved.
                     </div>
                 </div>
             </footer>

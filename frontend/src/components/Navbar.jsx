@@ -9,10 +9,8 @@ const Navbar = () => {
         <nav className="bg-white border-b border-gray-200 px-4 py-3 fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
                 <Link to="/dashboard" className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                        T
-                    </div>
-                    <span className="text-xl font-bold text-gray-900 hidden sm:block">TimetableGen</span>
+                    <img src="/schedulify-logo.png" alt="Schedulify" className="w-8 h-8 rounded-lg object-cover" />
+                    <span className="text-xl font-bold text-gray-900 hidden sm:block">Schedulify</span>
                 </Link>
             </div>
 
@@ -23,7 +21,7 @@ const Navbar = () => {
                     </div>
                     <div className="hidden sm:block">
                         <p className="font-medium">{user?.name || 'User'}</p>
-                        <p className="text-xs text-gray-500 capitalize">{user?.role?.toLowerCase() || 'Guest'}</p>
+                        <p className="text-xs text-gray-500">{user?.email || ''}</p>
                     </div>
                 </div>
 
