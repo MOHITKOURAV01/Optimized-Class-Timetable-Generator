@@ -4,7 +4,7 @@ import { departmentApi } from '../api/department.api';
 import TimetableGrid from '../components/TimetableGrid';
 import Loader from '../components/Loader';
 import Card from '../components/ui/Card';
-import { Search, Filter, Download, Calendar, Trash2, Printer } from 'lucide-react';
+import { Search, Filter, Download, Calendar, Trash2 } from 'lucide-react';
 import { useNotificationStore } from '../store/notification.store';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -153,15 +153,15 @@ const TimetableDetailPage = () => {
             const row = [{ content: `${seg.start} - ${seg.end}`, styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }];
             DAYS.forEach(day => {
                 const slot = slots.find(s =>
-                    s.dayOfWeek.toUpperCase() === day &&
-                    s.startTime.substring(0, 5) <= seg.start &&
-                    s.endTime.substring(0, 5) >= seg.end
+                    s?.dayOfWeek?.toUpperCase() === day &&
+                    s?.startTime?.substring(0, 5) <= seg.start &&
+                    s?.endTime?.substring(0, 5) >= seg.end
                 );
 
                 if (slot) {
                     const type = slot.slotType === 'LAB' ? 'LABORATORY' : 'LECTURE';
                     row.push({
-                        content: `${slot.subject?.code}\n${slot.subject?.name}\n${slot.classroom?.name}\n${slot.faculty?.name}`,
+                        content: `${slot?.subject?.code || ''}\n${slot?.subject?.name || ''}\n${slot?.classroom?.name || ''}\n${slot?.faculty?.name || ''}`,
                         styles: {
                             fillColor: slot.slotType === 'LAB' ? [245, 243, 255] : [239, 246, 255], // Light Purple or Light Blue
                             textColor: slot.slotType === 'LAB' ? [107, 33, 168] : [30, 64, 175], // Deep Purple or Deep Blue
@@ -230,21 +230,12 @@ const TimetableDetailPage = () => {
             return;
         }
 
-        // 4. SAVE
-        const filename = `Timetable_${selectedTimetable.department?.code || 'GEN'}_Sem${selectedTimetable.semester}.pdf`;
-        console.log("Saving PDF...", filename);
+        // 4. Open PDF in new tab — user downloads from Chrome's PDF viewer
+        const pdfBlob = doc.output('blob');
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        window.open(blobUrl, '_blank');
 
-        // Diagnostic: Check output size
-        const pdfOutput = doc.output('arraybuffer');
-        console.log("PDF generated, size:", pdfOutput.byteLength, "bytes");
-
-        if (pdfOutput.byteLength < 1000) {
-            console.warn("PDF appears unusually small, might be corrupted");
-        }
-
-        doc.save(filename);
-        console.log("Save command issued");
-        addNotification("Professional PDF Exported Successfully", "success");
+        addNotification("Professional PDF opened in new tab", "success");
         setExporting(false);
     };
 
@@ -274,12 +265,6 @@ const TimetableDetailPage = () => {
                                 <span>Export Professional PDF</span>
                             </>
                         )}
-                    </button>
-                    <button
-                        onClick={() => window.print()}
-                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 font-black uppercase tracking-widest text-xs hover:bg-slate-50 transition-all shadow-sm"
-                    >
-                        <Printer className="w-4 h-4" /> Print
                     </button>
                 </div>
             </div>

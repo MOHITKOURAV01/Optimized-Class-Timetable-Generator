@@ -128,14 +128,14 @@ const TimetableGeneratePage = () => {
             const row = [{ content: `${seg.start} - ${seg.end}`, styles: { fontStyle: 'bold', fillColor: [248, 250, 252] } }];
             DAYS.forEach(day => {
                 const slot = slots.find(s =>
-                    s.dayOfWeek.toUpperCase() === day &&
-                    s.startTime.substring(0, 5) <= seg.start &&
-                    s.endTime.substring(0, 5) >= seg.end
+                    s?.dayOfWeek?.toUpperCase() === day &&
+                    s?.startTime?.substring(0, 5) <= seg.start &&
+                    s?.endTime?.substring(0, 5) >= seg.end
                 );
 
                 if (slot) {
                     row.push({
-                        content: `${slot.subject?.code}\n${slot.subject?.name}\n${slot.classroom?.name}\n${slot.faculty?.name}`,
+                        content: `${slot?.subject?.code || ''}\n${slot?.subject?.name || ''}\n${slot?.classroom?.name || ''}\n${slot?.faculty?.name || ''}`,
                         styles: {
                             fillColor: slot.slotType === 'LAB' ? [245, 243, 255] : [239, 246, 255],
                             textColor: slot.slotType === 'LAB' ? [107, 33, 168] : [30, 64, 175],
@@ -190,28 +190,18 @@ const TimetableGeneratePage = () => {
                     );
                 }
             });
-            console.log("AutoTable complete");
         } catch (error) {
             console.error("AutoTable error:", error);
             addNotification("Error generating PDF", "error");
-            setGenerating(false);
             return;
         }
 
-        const filename = `Draft_Timetable_Sem${formData.semester}.pdf`;
-        console.log("Saving PDF...", filename);
+        // Open PDF in new tab — user downloads from Chrome's PDF viewer
+        const pdfBlob = doc.output('blob');
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        window.open(blobUrl, '_blank');
 
-        // Diagnostic: Check output size
-        const pdfOutput = doc.output('arraybuffer');
-        console.log("PDF generated, size:", pdfOutput.byteLength, "bytes");
-
-        if (pdfOutput.byteLength < 1000) {
-            console.warn("PDF appears too small, might be corrupted");
-        }
-
-        doc.save(filename);
-        addNotification("Draft PDF Exported Successfully", "success");
-        setGenerating(false);
+        addNotification("Draft PDF opened in new tab", "success");
     };
 
     if (loading) return <Loader />;
