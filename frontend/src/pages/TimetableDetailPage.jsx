@@ -313,7 +313,7 @@ const TimetableDetailPage = () => {
                                     <div
                                         key={tt.id}
                                         className={`group relative p-4 rounded-xl border transition-all ${selectedTimetable?.id === tt.id
-                                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                            ? 'bg-gradient-to-r from-blue-600 to-violet-600 border-transparent text-white shadow-lg shadow-blue-500/30'
                                             : 'bg-white border-slate-100 hover:border-blue-200 hover:bg-slate-50 text-slate-700'
                                             }`}
                                     >
@@ -362,7 +362,7 @@ const TimetableDetailPage = () => {
                             </div>
                         ) : selectedTimetable ? (
                             <div id="timetable-printable" className="space-y-6">
-                                <div className="flex items-center justify-between p-6 bg-slate-900 rounded-2xl text-white shadow-xl overflow-hidden relative">
+                                <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-600 to-violet-600 rounded-2xl text-white shadow-xl shadow-blue-500/20 overflow-hidden relative">
                                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -mr-32 -mt-32" />
                                     <div className="relative z-10">
                                         <h2 className="text-2xl font-bold">{selectedTimetable.department?.name}</h2>

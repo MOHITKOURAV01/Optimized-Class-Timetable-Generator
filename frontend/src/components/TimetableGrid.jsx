@@ -75,47 +75,42 @@ const TimetableGrid = ({ slots = [] }) => {
     }
 
     return (
-        <div className="w-full overflow-hidden rounded-3xl border border-slate-200 shadow-2xl bg-white">
-            <div className="bg-[#1e293b] px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="w-full overflow-hidden rounded-3xl border border-white/20 shadow-2xl bg-white/40 backdrop-blur-xl">
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 text-white">
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                        <span className="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.6)] border border-white/20"></span>
-                        <span className="text-white text-[11px] font-black uppercase tracking-widest opacity-90">Lecture</span>
+                        <span className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"></span>
+                        <span className="text-[11px] font-bold uppercase tracking-widest opacity-90">Lecture</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="w-3.5 h-3.5 rounded-full bg-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.6)] border border-white/20"></span>
-                        <span className="text-white text-[11px] font-black uppercase tracking-widest opacity-90">Lab</span>
+                        <span className="w-3 h-3 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.8)]"></span>
+                        <span className="text-[11px] font-bold uppercase tracking-widest opacity-90">Lab</span>
                     </div>
                 </div>
-                <div className="bg-blue-500/10 px-5 py-2 rounded-full border border-blue-400/30 backdrop-blur-sm">
-                    <span className="text-blue-400 text-[10px] font-black tracking-widest uppercase">Elastic Spanning Grid</span>
+                <div className="bg-white/10 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
+                    <span className="text-blue-200 text-[10px] font-black tracking-widest uppercase">Smart Schedule</span>
                 </div>
             </div>
 
             <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full min-w-[1100px] border-separate border-spacing-0">
                     <thead>
-                        <tr className="sticky top-0 z-[60]">
-                            <th className="p-5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest bg-white border-b-2 border-r-2 border-slate-100 sticky left-0 top-0 z-[70] w-[140px]">
-                                <div className="flex flex-col">
-                                    <span className="text-blue-600">TIME</span>
-                                    <span className="text-[8px] opacity-40 uppercase">Flexible Intervals</span>
-                                </div>
+                        <tr>
+                            <th className="p-4 text-left text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white/80 backdrop-blur-md border-b border-r border-slate-200/50 sticky left-0 top-0 z-20 w-[120px]">
+                                TIME
                             </th>
                             {DAYS.map(day => (
-                                <th key={day} className="p-5 text-center text-[11px] font-black text-slate-800 uppercase tracking-[0.25em] bg-white border-b-2 border-r border-slate-100 last:border-r-0">
+                                <th key={day} className="p-4 text-center text-[11px] font-black text-slate-600 uppercase tracking-[0.2em] bg-white/60 backdrop-blur-sm border-b border-r border-slate-200/50 last:border-r-0">
                                     {day}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="bg-white">
+                    <tbody className="divide-y divide-slate-100">
                         {segments.map((seg, idx) => (
-                            <tr key={seg.key} className="hover:bg-blue-50/10 transition-colors">
-                                <td className="p-5 text-[11px] font-black text-slate-500 border-r-2 border-slate-100 bg-white sticky left-0 z-[50] text-center shadow-[4px_0_8px_-4px_rgba(0,0,0,0.05)]">
-                                    <div className="bg-slate-50 py-2 px-3 rounded-lg border border-slate-200 shadow-sm font-mono text-slate-600">
-                                        {seg.start} - {seg.end}
-                                    </div>
+                            <tr key={seg.key} className="group transition-colors hover:bg-white/30">
+                                <td className="p-4 text-[11px] font-bold text-slate-500 border-r border-slate-200/50 bg-white/80 backdrop-blur-md sticky left-0 z-10 text-center shadow-[4px_0_10px_-4px_rgba(0,0,0,0.05)]">
+                                    {seg.start} <br /> <span className="text-[9px] opacity-60 font-medium">to</span> <br /> {seg.end}
                                 </td>
                                 {DAYS.map(day => {
                                     const cell = grid[day][seg.key];
@@ -128,44 +123,34 @@ const TimetableGrid = ({ slots = [] }) => {
                                         <td
                                             key={`${day}-${seg.key}`}
                                             rowSpan={slot?.rowSpan || 1}
-                                            className="p-2 border-r border-slate-100 last:border-r-0 relative group h-1"
+                                            className="p-1.5 border-r border-slate-100/50 last:border-r-0 relative h-1"
                                         >
                                             {slot ? (
-                                                <div className={`h-full min-h-[90px] w-full p-4 rounded-2xl border-b-4 shadow-lg flex flex-col justify-between transition-all duration-300 transform group-hover:scale-[1.01] group-hover:shadow-2xl ${isLab
-                                                    ? 'bg-gradient-to-br from-purple-600 to-indigo-700 border-purple-900 text-white'
-                                                    : 'bg-gradient-to-br from-blue-600 to-indigo-700 border-blue-900 text-white'
+                                                <div className={`h-full min-h-[100px] w-full p-3.5 rounded-xl border flex flex-col justify-between transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl shadow-md ${isLab
+                                                    ? 'bg-gradient-to-br from-purple-600/90 to-indigo-700/90 border-purple-400/30 text-white shadow-purple-900/20'
+                                                    : 'bg-gradient-to-br from-blue-600/90 to-indigo-700/90 border-blue-400/30 text-white shadow-blue-900/20'
                                                     }`}>
-                                                    <div className="relative z-10 w-full">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-full border border-white/20 uppercase tracking-tighter ${isLab ? 'bg-purple-500' : 'bg-blue-500'}`}>
-                                                                {isLab ? 'Laboratory' : 'Lecture'}
-                                                            </span>
-                                                            <span className="text-[10px] font-bold opacity-80">{slot.classroom?.name || `RM ${slot.classroomId}`}</span>
-                                                        </div>
-                                                        <h4 className="text-[13px] font-black leading-[1.2] line-clamp-2 uppercase tracking-tight mb-1">
-                                                            {slot.subject?.name || 'Subject Allotted'}
-                                                        </h4>
-                                                        <div className="flex justify-between items-center">
-                                                            <p className="text-[9px] font-bold opacity-70 tracking-widest">{slot.subject?.code || `SUB${slot.subjectId}`}</p>
-                                                            <span className="text-[8px] font-black bg-black/20 px-1.5 rounded-sm">
-                                                                {calculateDuration(slot.startTime, slot.endTime)} min
-                                                            </span>
-                                                        </div>
+
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm border border-white/20 ${isLab ? 'bg-purple-900/30' : 'bg-blue-900/30'}`}>
+                                                            {slot.classroom?.name || `RM ${slot.classroomId}`}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold opacity-80">{calculateDuration(slot.startTime, slot.endTime)}m</span>
                                                     </div>
 
-                                                    <div className="flex items-center gap-2 pt-3 border-t border-white/10 mt-2 relative z-10">
-                                                        <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
-                                                            <span className="text-[10px] font-black">{slot.faculty?.name?.charAt(0) || 'F'}</span>
+                                                    <h4 className="text-[12px] font-black leading-tight line-clamp-2 mb-1 drop-shadow-md">
+                                                        {slot.subject?.name}
+                                                    </h4>
+
+                                                    <div className="flex items-center gap-1.5 mt-auto pt-2 border-t border-white/10">
+                                                        <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[9px] font-bold border border-white/20">
+                                                            {slot.faculty?.name?.charAt(0)}
                                                         </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[10px] font-black truncate max-w-[100px] leading-none">{slot.faculty?.name || 'TBD'}</span>
-                                                        </div>
+                                                        <span className="text-[10px] font-medium truncate opacity-90">{slot.faculty?.name}</span>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="h-full w-full min-h-[50px] rounded-2xl border-2 border-dashed border-slate-200 bg-white flex items-center justify-center transition-all duration-300 group-hover:border-blue-200 group-hover:bg-blue-50/30">
-                                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] opacity-40 transition-opacity">Reserved</span>
-                                                </div>
+                                                <div className="h-full w-full min-h-[60px] rounded-xl border border-dashed border-slate-300/50 bg-white/20 hover:bg-white/40 transition-colors"></div>
                                             )}
                                         </td>
                                     );

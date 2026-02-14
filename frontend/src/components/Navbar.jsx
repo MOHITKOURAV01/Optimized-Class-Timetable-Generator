@@ -6,7 +6,7 @@ const Navbar = () => {
     const { user, logout } = useAuth();
 
     return (
-        <nav className="bg-white border-b border-gray-200 px-4 py-3 fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between">
+        <nav className="glass border-b border-white/20 px-4 py-3 fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
                 <Link to="/dashboard" className="flex items-center gap-2">
                     <img src="/schedulify-logo.png" alt="Schedulify" className="w-8 h-8 rounded-lg object-cover" />

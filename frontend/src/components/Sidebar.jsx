@@ -40,7 +40,7 @@ const Sidebar = () => {
 
             {/* Sidebar Container */}
             <aside className={`
-                fixed top-16 left-0 bottom-0 w-64 bg-white border-r border-gray-200 overflow-y-auto transition-transform duration-300 z-40
+                fixed top-16 left-0 bottom-0 w-64 glass border-r border-white/20 overflow-y-auto transition-transform duration-300 z-40
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
                 md:translate-x-0
             `}>
@@ -52,10 +52,10 @@ const Sidebar = () => {
                             end={link.to === '/dashboard'}
                             onClick={() => setIsOpen(false)}
                             className={({ isActive }) => `
-                                flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
+                                flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300
                                 ${isActive
-                                    ? 'bg-blue-50 text-blue-700 font-medium'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-500/30'
+                                    : 'text-slate-600 hover:bg-white/50 hover:text-slate-900 hover:translate-x-1'
                                 }
                             `}
                         >

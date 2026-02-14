@@ -259,7 +259,7 @@ const TimetableGeneratePage = () => {
                                 </select>
                             </div>
 
-                            <Button type="submit" disabled={generating} className="w-full flex justify-center items-center gap-2">
+                            <Button type="submit" disabled={generating} className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5">
                                 {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calendar className="w-4 h-4" />}
                                 {generating ? 'Generating...' : 'Generate Timetable'}
                             </Button>
@@ -315,7 +315,7 @@ const TimetableGeneratePage = () => {
                                     <Button variant="secondary" onClick={exportToPDF} className="bg-slate-100 hover:bg-slate-200 text-slate-700">
                                         Export Draft PDF
                                     </Button>
-                                    <Button onClick={() => navigate('/dashboard/approvals')}>
+                                    <Button onClick={() => navigate('/dashboard/approvals')} className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5">
                                         Go to Approvals
                                     </Button>
                                 </div>

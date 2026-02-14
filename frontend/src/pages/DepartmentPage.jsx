@@ -121,7 +121,7 @@ const DepartmentPage = () => {
                 </div>
                 <Button
                     onClick={() => navigate('/dashboard/departments/add')}
-                    className="bg-blue-600 hover:bg-blue-700 shadow-md flex items-center gap-2"
+                    className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
                 >
                     <Plus className="w-5 h-5" />
                     New Department

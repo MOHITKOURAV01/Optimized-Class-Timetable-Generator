@@ -49,8 +49,7 @@ const getGenerationData = async (departmentId, semester, userId) => {
             NOT: {
                 AND: [
                     { departmentId: deptId },
-                    { semester: sem },
-                    { status: 'PENDING' }
+                    { semester: sem }
                 ]
             }
         },

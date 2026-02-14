@@ -72,14 +72,14 @@ const Dashboard = () => {
             desc: 'Register staff & constraints',
             path: '/dashboard/faculty/add',
             icon: PlusCircle,
-            color: 'bg-gradient-to-br from-emerald-500 to-teal-600'
+            color: 'bg-gradient-to-br from-blue-500 to-blue-600'
         },
         {
             label: 'Create Subject',
             desc: 'Add new curriculum data',
             path: '/dashboard/subjects/add',
             icon: BookOpen,
-            color: 'bg-gradient-to-br from-purple-500 to-violet-600'
+            color: 'bg-gradient-to-br from-indigo-500 to-indigo-600'
         },
     ];
 
@@ -102,7 +102,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat) => (
                     <Link key={stat.label} to={stat.path}>
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all group cursor-pointer">
+                        <div className="glass-card p-6 border-transparent hover:shadow-2xl hover:-translate-y-1 transition-all group cursor-pointer relative overflow-hidden">
                             <div className="flex items-center justify-between mb-4">
                                 <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-xl flex items-center justify-center transition-colors group-hover:bg-opacity-80`}>
                                     <stat.icon className="w-6 h-6" />
@@ -142,7 +142,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Secondary Links Card */}
-                <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col space-y-6">
+                <div className="glass-card p-8 border-transparent flex flex-col space-y-6">
                     <h2 className="text-xl font-bold text-gray-800">Data Management</h2>
                     <div className="space-y-3">
                         <button
@@ -160,10 +160,10 @@ const Dashboard = () => {
 
                         <button
                             onClick={() => navigate('/dashboard/classrooms/add')}
-                            className="w-full flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/30 transition-all text-left group"
+                            className="w-full flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all text-left group"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-purple-100 text-purple-600 rounded-lg group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                     <School className="w-4 h-4" />
                                 </div>
                                 <span className="font-medium text-gray-700">Add Classroom</span>
@@ -173,10 +173,10 @@ const Dashboard = () => {
 
                         <button
                             onClick={() => navigate('/dashboard/subjects/add')}
-                            className="w-full flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 transition-all text-left group"
+                            className="w-full flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all text-left group"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-orange-100 text-orange-600 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                     <BookOpen className="w-4 h-4" />
                                 </div>
                                 <span className="font-medium text-gray-700">Add Subject</span>

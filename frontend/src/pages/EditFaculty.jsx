@@ -233,7 +233,7 @@ const EditFaculty = () => {
                     <Button type="button" variant="secondary" onClick={() => navigate('/dashboard/faculty')} className="px-8">
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={submitting} className="px-8 bg-blue-600 hover:bg-blue-700 shadow-md text-white">
+                    <Button type="submit" disabled={submitting} className="px-8 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 shadow-md text-white">
                         {submitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                         {submitting ? 'Updating...' : 'Update Faculty'}
                     </Button>

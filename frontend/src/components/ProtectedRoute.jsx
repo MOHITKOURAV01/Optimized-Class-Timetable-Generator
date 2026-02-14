@@ -20,7 +20,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen">
             <Navbar />
             <Sidebar />
             <main className="pt-16 md:pl-64 min-h-screen transition-all duration-300">

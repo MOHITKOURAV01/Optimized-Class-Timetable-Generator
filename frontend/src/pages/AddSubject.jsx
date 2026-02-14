@@ -228,7 +228,7 @@ const AddSubject = () => {
                     <Button type="button" variant="secondary" onClick={() => navigate('/dashboard/subjects')} className="px-8">
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={submitting} className="px-8 bg-blue-600 hover:bg-blue-700 shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                    <Button type="submit" disabled={submitting} className="px-8 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white shadow-lg shadow-blue-500/30 transition-all transform hover:-translate-y-0.5">
                         {submitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                         {submitting ? 'Creating...' : 'Create Subject'}
                     </Button>
