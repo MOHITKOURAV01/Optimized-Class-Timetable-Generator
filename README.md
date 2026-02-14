@@ -6,7 +6,7 @@ Intelligent Scheduling for Smarter Campuses
 
 
 
-# The Problem Statement
+# 🧩 The Problem
 Most colleges still rely on manual or spreadsheet-based timetable creation, leading to:
 Class clashes and faculty overload
 
@@ -22,70 +22,65 @@ Frustrated students and faculty
 
 With NEP 2020 promoting flexible and multidisciplinary learning, scheduling complexity has exploded — existing tools can’t keep up.
 
-# The Idea
+# 💡 The Idea
 An AI-powered, web-based platform that automatically generates optimized timetables for colleges by balancing:
 Room utilization
 
-
 Faculty workload
-
 
 Student preferences
 
-
 Fixed and elective slots
 
+All while ensuring zero clashes and maximum efficiency using **Google Gemini AI**.
 
-All while ensuring zero clashes and maximum efficiency.
-
-# How It Works
-Admins / HODs input:
-
+# ⚙️ How It Works
+You input:
 
 Faculty, subjects, rooms, and constraints
 
+Algorithm runs optimization (via **Google Gemini 1.5 Flash** + Heuristic Fallback)
 
-Algorithm runs optimization (via Google OR-Tools / heuristic logic)
-
-
-The system produces multiple optimized timetables ranked by efficiency
-
+The system produces multiple optimized timetables
 
 Users can review, tweak, and approve the final schedule
 
-
-Exports available in PDF, CSV, or iCal for easy sharing
-
+Exports available in **Professional PDF** for easy sharing
 
 
-# Tech Stack
-Frontend: React (TypeScript)
- Backend: Node.js (Express)
- Database: MySQL with Prisma ORM
- Optimizer Engine: Python microservice using Google OR-Tools (CP-SAT)
- Hosting: Dockerized on AWS / Render
+# 🧠 Tech Stack
+**Frontend:** React (Vite), Tailwind CSS (Glassmorphism Design), Lucide Icons
+**Backend:** Node.js (Express)
+**Database:** MySQL (TiDB Cloud) with Prisma ORM
+**AI Engine:** Google Gemini 1.5 Flash (@google/generative-ai)
+**State Management:** Zustand
+**Tools:** jsPDF (Export), React Router
+**Hosting:** Vercel (Frontend), Render (Backend)
 
-# Key Features
-🧑‍🏫 Faculty load & availability management
+# 🔐 Login & Signup System (How it Works)
+The backend handles who is allowed to enter the system.
+
+### How we check users:
+1. **Signup**: When a user signs up, we save their **Email** and **Password** safely in our database.
+2. **Login**: When a user tries to log in, we check if their **Email** and **Password** match what we have.
+   - If it matches -> **Access Granted!** ✅
+   - If it is wrong -> **Access Denied!** ❌
+
+We use **JWT (JSON Web Tokens)** to give users a "digital pass" so they stay logged in while using the app.
+
+# 🌟 Key Features
+🎨 **Modern Glassmorphism UI** - Beautiful, intuitive interface with gradient aesthetics
+📄 **Professional PDF Export** - Generate print-ready A4 landscape timetables
+🤖 **AI-Powered Scheduling** - Utilizes Google Gemini to solve complex constraints
+🧑‍🏫 **Faculty Load Management** - Automatic workload balancing and leave tracking
+🏫 **Room Optimization** - Efficient allocation of labs and classrooms
+⚖️ **Conflict Detection** - Real-time analysis of changing constraints
+🔐 **Private Access** - Secure isolated workspace for your data
+✅ **Approval Workflow** - Draft -> Pending -> Approved/Rejected cycle
 
 
-🏫 Classroom and lab capacity optimization
 
-
-📅 Multi-department & multi-shift scheduling
-
-
-⚖️ Automated conflict detection & rearrangement suggestions
-
-
-🧮 Analytics dashboard for utilization insights
-
-
-🔐 Role-based login and approval workflow
-
-
-
-# Impact
+# 🚀 Impact
 Saves 80% time vs manual scheduling
 
 
@@ -102,7 +97,7 @@ Scalable for any university structure or NEP 2020-based curriculum
 
 
 
-# Future Scope
+# 🔮 Future Scope
 Student elective integration
 
 
@@ -116,7 +111,7 @@ Integration with LMS platforms
 
 
 
-# Vision
+# 🧭 Vision
 To make academic scheduling smart, conflict-free, and adaptive —
  helping institutions focus less on logistics and more on learning outcomes.
 
@@ -137,7 +132,7 @@ Represents an academic department (like CSE, ECE, MECH, etc.) — acts as the co
 * **name** → Full department name (e.g., `"Computer Science and Engineering"`)
 * **code** → Short code (e.g., `"CSE"`)
 * **headOfDepartment** → Name or ID of HOD
-* **totalFaculty**, **totalStudents** → Department stats
+* **totalFaculty** → Department stats
 * **createdAt**, **updatedAt** → Record tracking timestamps
 
 ### **Relations**
@@ -146,7 +141,7 @@ Represents an academic department (like CSE, ECE, MECH, etc.) — acts as the co
 * **classrooms** → Classrooms assigned to this department
 * **subjects** → Subjects offered by the department
 * **timetableSlots** → Slots scheduled under this department
-* **authorizedUsers** → Admins/HODs tied to this department
+* **authorizedUsers** → Users tied to this department
 
 💡 **Use:** You’ll use this as a central reference when generating department-wise timetables, faculty loads, and subject allocations.
 
@@ -191,34 +186,16 @@ Represents a specific classroom or lab space.
 ### **Relations**
 
 * **department** → Linked department
-* **students** → Students in this classroom
+
 * **timetableSlots** → Slots conducted in this room
 
 💡 **Use:** Prevents double-booking and helps allocate suitable rooms (e.g., labs for practicals).
 
 ---
 
-# 👨‍🎓 4. Student Model
 
-### **Purpose**
 
-Represents each student.
-
-### **Key Fields**
-
-* **name**, **rollNumber**, **email**, **phone**
-* **classroomId** → FK → Classroom
-* **attendancePercentage**, **enrollmentYear**
-
-### **Relations**
-
-* **classroom** → The class the student belongs to
-
-💡 **Use:** Enables attendance and performance tracking, linked with timetables.
-
----
-
-# 📘 5. Subject Model
+# 📘 4. Subject Model
 
 ### **Purpose**
 
@@ -241,7 +218,7 @@ Stores course or subject information.
 
 ---
 
-# 🔗 6. SubjectFaculty Model (Join Table)
+# 🔗 5. SubjectFaculty Model (Join Table)
 
 ### **Purpose**
 
@@ -260,7 +237,7 @@ Connects multiple faculties to multiple subjects (many-to-many).
 
 ---
 
-# 🕓 7. TimetableSlot Model
+# 🕓 6. TimetableSlot Model
 
 ### **Purpose**
 
@@ -282,15 +259,15 @@ Represents each lecture/lab time block.
 
 ---
 
-# 👨‍💼 8. AuthorizedUser Model
+# 👨‍💼 7. AuthorizedUser Model
 
 ### **Purpose**
 
-Handles authentication and role-based access control.
+Handles authentication and secure access control.
 
 ### **Key Fields**
 
-* **name**, **email**, **password**, **role**
+* **name**, **email**, **password**
 * **departmentId**, **isActive**
 
 ### **Relations**
@@ -299,11 +276,11 @@ Handles authentication and role-based access control.
 * **approvals** → Links to timetable approvals
 * **generatedTimetables** → Timetables created by this user
 
-💡 **Use:** Differentiates access for SuperAdmins, HODs, and Faculty.
+💡 **Use:** Manages authentication for your private workspace.
 
 ---
 
-# 📅 9. Timetable Model
+# 📅 8. Timetable Model
 
 ### **Purpose**
 
@@ -323,7 +300,7 @@ Stores a full timetable version (like `"CSE Sem 3 - Draft 1"`).
 
 ---
 
-# ✅ 10. Approval Model
+# ✅ 9. Approval Model
 
 ### **Purpose**
 
@@ -338,16 +315,13 @@ Tracks approval workflow of timetables.
 * **timetable** → The timetable being approved
 * **approver** → AuthorizedUser reviewing it
 
-💡 **Use:** Implements hierarchical approval flow (Faculty → HOD → Admin).
+💡 **Use:** Tracks approval status of your generated timetables.
 
 ---
 
 # 🔤 Enums
 
-### **Role**
 
-Defines access levels:
-`SUPERADMIN | TIMETABLE_ADMIN | HOD | FACULTY | VIEWER`
 
 ### **TimetableStatus**
 
@@ -364,13 +338,7 @@ For each approval record:
 
 ```mermaid
 erDiagram
-    STUDENT {
-        int student_id PK
-        string name
-        string email
-        string department_id FK
-        int year
-    }
+
 
     INSTRUCTOR {
         int instructor_id PK
@@ -410,20 +378,14 @@ erDiagram
         string end_time
     }
 
-    ENROLLMENT {
-        int enrollment_id PK
-        int student_id FK
-        int course_id FK
-        string semester
-    }
+
 
     %% RELATIONSHIPS %%
-    DEPARTMENT ||--o{ STUDENT : "has"
+
     DEPARTMENT ||--o{ INSTRUCTOR : "has"
     DEPARTMENT ||--o{ COURSE : "offers"
 
-    COURSE ||--o{ ENROLLMENT : "enrolled in"
-    STUDENT ||--o{ ENROLLMENT : "registers for"
+
 
     COURSE ||--o{ TIMETABLE : "scheduled as"
     INSTRUCTOR ||--o{ TIMETABLE : "teaches"
